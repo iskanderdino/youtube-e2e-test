@@ -58,6 +58,7 @@ npx playwright install
 ```bash
 npm run test:e2e
 ```
+**NOTE:** this will also automatically generate report after test execution is completed
 
 ### Run Tests with Specific Tags
 ```bash
@@ -93,8 +94,13 @@ The main test scenario covers:
 - `pages/YoutubePage.ts`: Page Object Model for YouTube interactions
 - `helpers/videoActions.ts`: Video control helper functions
 - `cucumber.js`: Test runner configuration
+- `reports`: generated reports will be saved here
 
 ## 🔧 PLUGIN INSTALLATION IN VSCODE (Required for Cucumber Framework)
 - Cucumber by Cucumber
 - Cucumber (Gherking) Full Support by Alexander Krechik
 - ESLint-Fix by Lyngai
+
+## Issues / TODO
+- Skip button not found or not clickable, ad may be non-skippable
+- Attach screenshot in html report

@@ -4,31 +4,18 @@
  * using Playwright for browser automation and Cucumber for BDD testing
  */
 
-import { Given, When, Then, After } from '@cucumber/cucumber';
-import { chromium, Browser, Page } from '@playwright/test';
+import { Given, When, Then } from '@cucumber/cucumber';
 import { YouTubePage } from '../../pages/YoutubePage';
 import { playVideo, pauseVideo, seekVideo, skipAdsIfPresent } from '../../helpers/videoActions';
 import fs from 'fs';
 import path from 'path';
 import assert from 'assert';
 
-// Global variables for browser and page instances
-let browser: Browser;
-let page: Page;
 let yt: YouTubePage;
 let initialTime: number;
 
-// Hook to close browser after each scenario, even if test fails
-After(async () => {
-  if (browser) {
-    await browser.close();
-  }
-});
-
-Given('I open YouTube', { timeout: 30000 }, async () => {
-  browser = await chromium.launch({ headless: false });
-  page = await browser.newPage();
-  yt = new YouTubePage(page);
+Given('I open YouTube', { timeout: 30000 }, async function () {
+  yt = new YouTubePage(this.page);
   await yt.goto();
 });
 
@@ -50,13 +37,13 @@ When('I click the first video', { timeout: 30000 }, async () => {
   await yt.clickFirstVideo();
 });
 
-Then('the video should start playing', async () => {
-  await playVideo(page);
-  await page.waitForTimeout(3000);
+Then('the video should start playing', async function () {
+  await playVideo(this.page);
+  await this.page.waitForTimeout(3000);
 });
 
-When('I pause the video', { timeout: 15000 }, async () => {
-  await pauseVideo(page);
+When('I pause the video', { timeout: 15000 }, async function () {
+  await pauseVideo(this.page);
 });
 
 Then('the video should be paused', async () => {
@@ -65,8 +52,8 @@ Then('the video should be paused', async () => {
   initialTime = await yt.getCurrentTime();
 });
 
-When('I seek forward {int} seconds', async (seconds: number) => {
-  await seekVideo(page, seconds);
+When('I seek forward {int} seconds', async function (seconds: number) {
+  await seekVideo(this.page, seconds);
 });
 
 Then('the video time should be greater than before', async () => {
@@ -74,12 +61,12 @@ Then('the video time should be greater than before', async () => {
   assert(newTime > initialTime);
 });
 
-Then('I take a screenshot', async () => {
+Then('I take a screenshot', async function () {
   const screenshotPath = path.join(__dirname, '../../screenshots/video_playing.png');
   await yt.takeScreenshot(screenshotPath);
 });
 
-Then('the screenshot should exist in the screenshots folder', async () => {
+Then('the screenshot should exist in the screenshots folder', async function () {
   const screenshotPath = path.join(__dirname, '../../screenshots/video_playing.png');
   assert(fs.existsSync(screenshotPath));
 });
@@ -87,6 +74,11 @@ Then('the screenshot should exist in the screenshots folder', async () => {
 Then('the video title should not be empty', async () => {
   const title = await yt.getTitle();
   assert(title.trim().length > 0);
+});
+
+Then('the video title should be empty', async () => {
+  const title = await yt.getTitle();
+  assert(title.trim().length === 0);
 });
 
 When('I change playback speed to {string}', async (speed: string) => {
@@ -102,14 +94,14 @@ When('I toggle captions', async () => {
   await yt.toggleCaptions();
 });
 
-Then('captions should be visible or gracefully skipped', async () => {
-  const captionsVisible = await page.evaluate(() => {
+Then('captions should be visible or gracefully skipped', async function () {
+  const captionsVisible = await this.page.evaluate(() => {
     const tracks = document.querySelectorAll('video track[kind="subtitles"]');
     return tracks.length > 0;
   });
   console.log(`📝 Captions ${captionsVisible ? 'enabled' : 'not available'}`);
 });
 
-Then('I skip ads if present', { timeout: 20000 }, async () => {
-  await skipAdsIfPresent(page);
+Then('I skip ads if present', { timeout: 20000 }, async function () {
+  await skipAdsIfPresent(this.page);
 });
