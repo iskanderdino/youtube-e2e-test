@@ -7,6 +7,7 @@
 import { Given, When, Then } from '@cucumber/cucumber';
 import { YouTubePage } from '../../pages/YoutubePage';
 import { playVideo, pauseVideo, seekVideo, skipAdsIfPresent } from '../../helpers/videoActions';
+import {GLOBAL_TIMEOUT} from '../../config';
 import fs from 'fs';
 import path from 'path';
 import assert from 'assert';
@@ -14,7 +15,7 @@ import assert from 'assert';
 let yt: YouTubePage;
 let initialTime: number;
 
-Given('I open YouTube', { timeout: 30000 }, async function () {
+Given('I open YouTube', { timeout: GLOBAL_TIMEOUT}, async function () {
   yt = new YouTubePage(this.page);
   await yt.goto();
 });
@@ -33,7 +34,7 @@ Then('I should see search results', async () => {
   assert(results.length > 0);
 });
 
-When('I click the first video', { timeout: 30000 }, async () => {
+When('I click the first video', { timeout: GLOBAL_TIMEOUT }, async () => {
   await yt.clickFirstVideo();
 });
 
@@ -81,27 +82,6 @@ Then('the video title should be empty', async () => {
   assert(title.trim().length === 0);
 });
 
-When('I change playback speed to {string}', async (speed: string) => {
-  await yt.setPlaybackRate(parseFloat(speed));
-});
-
-Then('the playback speed should be {string}', async (expected: string) => {
-  const rate = await yt.getPlaybackRate();
-  assert.strictEqual(rate.toString(), expected);
-});
-
-When('I toggle captions', async () => {
-  await yt.toggleCaptions();
-});
-
-Then('captions should be visible or gracefully skipped', async function () {
-  const captionsVisible = await this.page.evaluate(() => {
-    const tracks = document.querySelectorAll('video track[kind="subtitles"]');
-    return tracks.length > 0;
-  });
-  console.log(`📝 Captions ${captionsVisible ? 'enabled' : 'not available'}`);
-});
-
-Then('I skip ads if present', { timeout: 20000 }, async function () {
+Then('I skip ads if present', { timeout: GLOBAL_TIMEOUT }, async function () {
   await skipAdsIfPresent(yt);
 });

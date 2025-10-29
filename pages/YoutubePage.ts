@@ -5,6 +5,7 @@
  */
 
 import { Page } from '@playwright/test';
+import { YOUTUBE_URL, GLOBAL_TIMEOUT } from '../config';
 
 export class YouTubePage {
   constructor(public page: Page) {}
@@ -22,7 +23,7 @@ export class YouTubePage {
   }
 
   async goto() {
-    await this.page.goto('https://www.youtube.com', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await this.page.goto(YOUTUBE_URL, { waitUntil: 'domcontentloaded', timeout: GLOBAL_TIMEOUT });
     await this.page.waitForLoadState('networkidle');
   }
 
@@ -43,7 +44,7 @@ export class YouTubePage {
     this.page.waitForTimeout(1000);
     const results = await this.getSearchResults();
     await results.first().click();
-    await this.videoElement.waitFor({ timeout: 30000 });
+    await this.videoElement.waitFor({ timeout: GLOBAL_TIMEOUT });
   }
 
   async getVideoElement() {
@@ -51,27 +52,11 @@ export class YouTubePage {
   }
 
   async getCurrentTime(): Promise<number> {
-    return await this.page.evaluate(() => document.querySelector('video')?.currentTime || 0);
+    return await this.videoElement.evaluate((video: HTMLVideoElement) => video.currentTime || 0);
   }
 
   async isPaused(): Promise<boolean> {
-    return await this.page.evaluate(() => document.querySelector('video')?.paused || false);
-  }
-
-  async getPlaybackRate(): Promise<number> {
-    return await this.page.evaluate(() => document.querySelector('video')?.playbackRate || 1);
-  }
-
-  async setPlaybackRate(rate: number) {
-    await this.page.evaluate((r) => {
-      const video = document.querySelector('video');
-      if (video) video.playbackRate = r;
-    }, rate);
-  }
-
-  async toggleCaptions() {
-    const button = await this.page.$('button[aria-label*="Subtitles"]');
-    if (button) await button.click();
+    return await this.videoElement.evaluate((video: HTMLVideoElement) => video.paused || false);
   }
 
   async takeScreenshot(filePath: string) {
