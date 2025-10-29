@@ -29,7 +29,7 @@ When('I search for {string}', { timeout: 30000 }, async (keyword: string) => {
 });
 
 Then('I should see search results', async () => {
-  const results = await yt.getSearchResults();
+  const results = (await yt.getSearchResults()).count;
   assert(results.length > 0);
 });
 
@@ -38,12 +38,12 @@ When('I click the first video', { timeout: 30000 }, async () => {
 });
 
 Then('the video should start playing', async function () {
-  await playVideo(this.page);
+  await playVideo(yt);
   await this.page.waitForTimeout(3000);
 });
 
 When('I pause the video', { timeout: 15000 }, async function () {
-  await pauseVideo(this.page);
+  await pauseVideo(yt);
 });
 
 Then('the video should be paused', async () => {
@@ -53,7 +53,7 @@ Then('the video should be paused', async () => {
 });
 
 When('I seek forward {int} seconds', async function (seconds: number) {
-  await seekVideo(this.page, seconds);
+  await seekVideo(yt, seconds);
 });
 
 Then('the video time should be greater than before', async () => {
@@ -103,5 +103,5 @@ Then('captions should be visible or gracefully skipped', async function () {
 });
 
 Then('I skip ads if present', { timeout: 20000 }, async function () {
-  await skipAdsIfPresent(this.page);
+  await skipAdsIfPresent(yt);
 });

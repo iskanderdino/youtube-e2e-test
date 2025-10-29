@@ -7,14 +7,15 @@
 import { Page } from '@playwright/test';
 
 export class YouTubePage {
-  constructor(private page: Page) {}
+  constructor(public page: Page) {}
 
   // Page Object Locators
-  private searchTextBox = this.page.locator('input[placeholder="Search"]');
-  private searchButton = this.page.locator('button#search-icon-legacy');
-  private videoPlayer = this.page.locator('.html5-video-player');
-  private playPauseButton = this.page.locator('.ytp-play-button');
-  private videoElement = this.page.locator('video');
+  public searchTextBox = this.page.locator('input[placeholder="Search"]');
+  public searchButton = this.page.locator('button#search-icon-legacy');
+  public videoPlayer = this.page.locator('#movie_player');
+  public playPauseButton = this.page.locator('.ytp-play-button');
+  public videoElement = this.page.locator('#movie_player video');
+  public searchResultContainers = this.page.locator('ytd-video-renderer');
 
   async isSearchBoxVisible(): Promise<boolean> {
     return await this.searchTextBox.isVisible();
@@ -31,21 +32,22 @@ export class YouTubePage {
     // Press Enter to submit the search
     await this.searchTextBox.press('Enter');
     // Wait for search results to load
-    await this.page.waitForSelector('ytd-video-renderer', { timeout: 60000 });
+    await this.searchResultContainers.first().waitFor({timeout: 6000});
   }
 
   async getSearchResults() {
-    return await this.page.$$('ytd-video-renderer');
+    return await this.searchResultContainers;
   }
 
   async clickFirstVideo() {
+    this.page.waitForTimeout(1000);
     const results = await this.getSearchResults();
-    await results[0].click();
-    await this.page.waitForSelector('video', { timeout: 30000 });
+    await results.first().click();
+    await this.videoElement.waitFor({ timeout: 30000 });
   }
 
   async getVideoElement() {
-    return await this.page.$('video');
+    return await this.videoElement;
   }
 
   async getCurrentTime(): Promise<number> {
@@ -83,6 +85,6 @@ export class YouTubePage {
   async skipAdsIfPresent() {
     // Delegate to the helper function for reusability
     const { skipAdsIfPresent } = await import('../helpers/videoActions');
-    await skipAdsIfPresent(this.page);
+    await skipAdsIfPresent(this);
   }
 }

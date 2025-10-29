@@ -1,22 +1,22 @@
 /**
  * Video Action Helpers
  * This module contains helper functions for interacting with YouTube video elements
- * using Playwright's Page object. These functions handle play, pause, and seek operations.
+ * using the YouTubePage object. These functions handle play, pause, and seek operations.
  */
 
-import { Page } from '@playwright/test';
+import { YouTubePage } from '../pages/YoutubePage';
 
 /**
  * Plays the video if it's currently paused
- * @param page - Playwright Page instance
+ * @param youtubePage - YouTubePage instance
  */
-export async function playVideo(page: Page) {
-  const isPaused = await page.evaluate(() => {
+export async function playVideo(youtubePage: YouTubePage) {
+  const isPaused = await youtubePage.page.evaluate(() => {
     const video = document.querySelector('video');
     return video ? video.paused : false;
   });
   if (isPaused) {
-    await page.click('.ytp-play-button');
+    await youtubePage.playPauseButton.click();
     console.log('▶️ Video started');
   } else {
     console.log('▶️ Video is already playing');
@@ -25,19 +25,19 @@ export async function playVideo(page: Page) {
 
 /**
  * Pauses the video if it's currently playing
- * @param page - Playwright Page instance
+ * @param youtubePage - YouTubePage instance
  */
-export async function pauseVideo(page: Page) {
-  const isPaused = await page.evaluate(() => {
+export async function pauseVideo(youtubePage: YouTubePage) {
+  const isPaused = await youtubePage.page.evaluate(() => {
     const video = document.querySelector('video');
     return video ? video.paused : false;
   });
   if (!isPaused) {
     // Hover over the video to show controls
-    await page.hover('.html5-video-player');
-    await page.locator('.ytp-play-button').click();
+    await youtubePage.videoPlayer.hover();
+    await youtubePage.playPauseButton.click();
     // Wait for the video to be paused
-    await page.waitForFunction(() => {
+    await youtubePage.page.waitForFunction(() => {
       const video = document.querySelector('video');
       return video ? video.paused : false;
     }, { timeout: 5000 });
@@ -49,11 +49,11 @@ export async function pauseVideo(page: Page) {
 
 /**
  * Seeks the video forward by the specified number of seconds
- * @param page - Playwright Page instance
+ * @param youtubePage - YouTubePage instance
  * @param seconds - Number of seconds to seek forward
  */
-export async function seekVideo(page: Page, seconds: number) {
-  await page.evaluate((s) => {
+export async function seekVideo(youtubePage: YouTubePage, seconds: number) {
+  await youtubePage.page.evaluate((s: number) => {
     const video = document.querySelector('video');
     if (video) video.currentTime += s;
   }, seconds);
@@ -62,24 +62,25 @@ export async function seekVideo(page: Page, seconds: number) {
 
 /**
  * Skips ads if present on the YouTube video player
- * @param page - Playwright Page instance
+ * @param youtubePage - YouTubePage instance
  */
-export async function skipAdsIfPresent(page: Page) {
+export async function skipAdsIfPresent(youtubePage: YouTubePage) {
   try {
     // Wait a bit for potential ad to load
-    await page.waitForTimeout(3000);
+    await youtubePage.page.waitForTimeout(3000);
 
     // Check for ad presence using locators
     const adLocators = [
-      page.locator('.ytp-ad-player-overlay'),
-      page.locator('.ytp-ad-text'),
-      page.locator('.ytp-ad-preview-text'),
-      page.locator('.ytp-ad-module'),
-      page.locator('.ytp-ad-overlay'),
-      page.locator('.ytp-ad-player-overlay-instream-info'),
-      page.locator('.ytp-ad-skip-button-modern')
+      youtubePage.page.locator('.ytp-ad-player-overlay'),
+      youtubePage.page.locator('.ytp-ad-text'),
+      youtubePage.page.locator('.ytp-ad-preview-text'),
+      youtubePage.page.locator('.ytp-ad-module'),
+      youtubePage.page.locator('.ytp-ad-overlay'),
+      youtubePage.page.locator('.ytp-ad-player-overlay-instream-info'),
+      youtubePage.page.locator('.ytp-ad-skip-button-modern')
     ];
 
+    // Check if ad is visible when video starts, set adDetected to true if it does
     let adDetected = false;
     for (const locator of adLocators) {
       if (await locator.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -89,7 +90,7 @@ export async function skipAdsIfPresent(page: Page) {
     }
 
     // Also check for ad text in body
-    const adText = await page.locator('body').textContent();
+    const adText = await youtubePage.page.locator('body').textContent();
     if (adText && (adText.includes('Ad') || adText.includes('Advertisement') || adText.includes('Skip'))) {
       adDetected = true;
     }
@@ -114,10 +115,10 @@ export async function skipAdsIfPresent(page: Page) {
       for (let attempt = 0; attempt < maxAttempts && !skipped; attempt++) {
         for (const selector of skipSelectors) {
           try {
-            const skipButton = page.locator(selector);
+            const skipButton = youtubePage.page.locator(selector);
             if (await skipButton.isVisible({ timeout: 100 }).catch(() => false)) {
               // Wait a bit more to ensure it's fully loaded
-              await page.waitForTimeout(500);
+              await youtubePage.page.waitForTimeout(500);
               // Hover to ensure it's interactable
               await skipButton.hover({ timeout: 1000 });
               // Click the button
@@ -132,7 +133,7 @@ export async function skipAdsIfPresent(page: Page) {
           }
         }
         if (!skipped) {
-          await page.waitForTimeout(1000); // Wait 1 second before next attempt
+          await youtubePage.page.waitForTimeout(1000); // Wait 1 second before next attempt
         }
       }
 
