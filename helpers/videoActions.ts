@@ -4,6 +4,7 @@
  * using the YouTubePage object. These functions handle play, pause, and seek operations.
  */
 
+import { GLOBAL_TIMEOUT } from '../config';
 import { YouTubePage } from '../pages/YoutubePage';
 
 /**
@@ -138,7 +139,15 @@ export async function skipAdsIfPresent(youtubePage: YouTubePage) {
       }
 
       if (!skipped) {
-        console.log('⚠️ Skip button not found or not clickable, ad may be non-skippable');
+        console.log('⚠️ Skip button not found, assuming short ad (<10s), waiting for ad to complete...');
+        // Wait for ad to disappear (up to 30 seconds for safety)
+        await youtubePage.page.waitForFunction(() => {
+          const adElements = document.querySelectorAll('.ytp-ad-player-overlay, .ytp-ad-text, .ytp-ad-preview-text, .ytp-ad-module, .ytp-ad-overlay, .ytp-ad-player-overlay-instream-info');
+          return Array.from(adElements).every(el => !(el as HTMLElement).offsetParent);
+        }, { timeout: GLOBAL_TIMEOUT }).catch(() => {
+          console.log('⚠️ Ad did not disappear within timeout, proceeding...');
+        });
+        console.log('✅ Ad completed');
       }
     } else {
       console.log('✅ No ad present');
