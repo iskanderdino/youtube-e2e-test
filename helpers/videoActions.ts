@@ -112,7 +112,7 @@ export async function skipAdsIfPresent(youtubePage: YouTubePage) {
       ];
 
       let skipped = false;
-      const maxAttempts = 20; // Poll for up to 20 seconds
+      const maxAttempts = 5; // Poll for up to 5 seconds
       for (let attempt = 0; attempt < maxAttempts && !skipped; attempt++) {
         for (const selector of skipSelectors) {
           try {
@@ -123,13 +123,14 @@ export async function skipAdsIfPresent(youtubePage: YouTubePage) {
               // Hover to ensure it's interactable
               await skipButton.hover({ timeout: 1000 });
               // Click the button
-              await skipButton.click({ timeout: 2000 });
+              await skipButton.click({ timeout: 1000 });
               console.log('⏭️ Skipped ad successfully');
               skipped = true;
               break;
             }
           } catch (e) {
             // Continue to next selector
+            console.log('⏭️ Skip button is not visible and clickable...');
             continue;
           }
         }
