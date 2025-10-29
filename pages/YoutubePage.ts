@@ -4,8 +4,18 @@
  * using Playwright's Page object for browser automation
  */
 
-import { Page } from '@playwright/test';
+import { Page, Locator } from '@playwright/test';
 import { YOUTUBE_URL, GLOBAL_TIMEOUT } from '../config';
+
+export class VideoResult {
+  constructor(private element: Locator) {}
+
+  public title = this.element.locator('#video-title');
+
+  async clickTitle() {
+    await this.title.click();
+  }
+}
 
 export class YouTubePage {
   constructor(public page: Page) {}
@@ -41,9 +51,8 @@ export class YouTubePage {
   }
 
   async clickFirstVideo() {
-    this.page.waitForTimeout(1000);
-    const results = await this.getSearchResults();
-    await results.first().click();
+    const firstResult = new VideoResult(this.searchResultContainers.first());
++   await firstResult.clickTitle();
     await this.videoElement.waitFor({ timeout: GLOBAL_TIMEOUT });
   }
 

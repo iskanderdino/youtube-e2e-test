@@ -43,12 +43,13 @@ youtube-e2e-test/
 git clone https://github.com/your-username/youtube-e2e-test.git
 cd youtube-e2e-test
 
+# Run this command in your terminal
 # Install dependencies
 npm install
-npm install @cucumber/cucumber
-npm install playwright
-npm install --save-dev @cucumber/html-formatter
-npm install --save-dev multiple-cucumber-html-reporter
+# npm install @cucumber/cucumber
+# npm install playwright
+# npm install --save-dev @cucumber/html-formatter
+# npm install --save-dev multiple-cucumber-html-reporter
 
 # Install Playwright browsers
 npx playwright install
